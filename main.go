@@ -8,31 +8,33 @@ import (
 )
 
 func main() {
-	url := "http://localhost:8080/chart"
-	fmt.Println("URL:>", url)
 
-	request := gorequest.New()
-	requestsList := []string{"request1", "request2", "request3"}
+	requestsTypes := []string{ "dates-compare", "charts-count", "charts-compare", "entities-compare" }
 
-
-	for _, request_name := range requestsList {
+	for _, requestType := range requestsTypes {
+		fmt.Print("\n ====================================================================\n")
 
 		charts := make(map[string][]Chart)
 		charts["wfm"] = []Chart{
-			{"T_READY_PLAN", "line"}, {"PCT_READY", "line"},
+			{"T_READY_PLAN", "line"},
+			{"PCT_READY", "line"},
 		}
 		charts["pds"] = []Chart{
 			{"JOB_TALK", "line"}, {"JOB_CALLS", "line"}, {"JOB_UPDATE", "line"},
 		}
 
+
+		option := getTypeOption(requestType)
+
 		data := &RequestOptions{
+			RequestTypeOptions: 	    option,
 			Filters: Filter{
-				Cluster:            "clusterDay",
-				DayStart:           "2017-01-09",
-				DayEnd:             "2017-01-11",
+				Cluster: 	    "clusterHour",
+				DayStart: 	    "2017-01-22",
+				DayEnd:             "2017-01-24",
 				TimePeriods:        []TimePeriod{},
 				Lines:              []string{},
-				Users:              []string{},
+				Users:              getUsers(requestType),
 				OrgStruct:          []string{},
 				OrgClusteredGroups: map[string][]string{},
 			},
@@ -41,24 +43,74 @@ func main() {
 
 		jsonData, _ := json.Marshal(data)
 
-		requestHeader := "test-kpi-counter-service-" + request_name
-		fmt.Println("Request:>", requestHeader)
+		sendRequest(jsonData, requestType )
 
-		resp, body, errs := request.Post(url).
-			Set("X-Custom-Header", requestHeader).
-			Send(string(jsonData)).
-			End()
-		if errs != nil {
-			fmt.Println(errs)
-			os.Exit(1)
-		}
-		fmt.Println("response Status:", resp.Status)
-		fmt.Println("response Headers:", resp.Header)
-		fmt.Println("response Body:", body)
 	}
 }
 
+
+func sendRequest(data []byte, requestType string){
+
+	request := gorequest.New()
+	url := "http://localhost:8080/chart"
+
+
+	fmt.Println("Request:>", requestType)
+
+	resp, body, errs := request.Post(url).
+	Set("X-Request-type", requestType).
+	Send(string(data)).
+	End()
+	if errs != nil {
+		fmt.Println(errs)
+		os.Exit(1)
+	}
+	fmt.Println("response Status:", resp.Status)
+	fmt.Print(" --------------------------------------------------------------------\n")
+	fmt.Println("response Headers:", resp.Header)
+	fmt.Print(" --------------------------------------------------------------------\n")
+	fmt.Println("response Body:", body)
+}
+
+
+
+func getUsers(requestType string) []string{
+	switch requestType {
+	case "entities-compare":
+		return []string{"2109", "1546", "5580"}
+
+	default: return []string{}
+
+	}
+}
+
+func getTypeOption(requestType string) interface{}{
+
+	switch requestType {
+	case "dates-compare":
+		options := DatesCompareRequestOptions{}
+		options.Periods= [][2]string{
+			{"2017-01-22", "2017-01-23"},
+			{"2017-01-23", "2017-01-24"},
+			{"2017-01-07", "2017-01-09"},
+
+		}
+		return options
+	case "entities-compare":
+
+		options := EntitiesCompareRequestOptions{}
+		options.Entity = "Users"
+		return options
+	default:
+		return nil
+
+	}
+}
+
+
 type RequestOptions struct {
+	RequestTypeOptions interface{}
+
 	Filters Filter             `json:"filters"`
 	Charts  map[string][]Chart `json:"charts"`
 }
@@ -77,4 +129,11 @@ type TimePeriod []string
 type Chart struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
+}
+type DatesCompareRequestOptions struct{
+	Periods [][2]string
+}
+
+type EntitiesCompareRequestOptions struct {
+	Entity string
 }
