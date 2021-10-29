@@ -61,11 +61,10 @@ func sendRequest(data []byte, requestType string) {
 		fmt.Println(errs)
 		os.Exit(1)
 	}
-	fmt.Println("response Status:", resp.Status)
-	fmt.Print(" --------------------------------------------------------------------\n")
+
 	fmt.Println("response Headers:", resp.Header)
-	fmt.Print(" --------------------------------------------------------------------\n")
 	fmt.Println("response Body:", body)
+
 }
 
 func getUsers(requestType string) []string {
