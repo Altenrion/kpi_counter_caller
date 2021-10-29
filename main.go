@@ -39,6 +39,7 @@ func main() {
 			},
 			Charts: charts,
 		}
+
 		jsonData, _ := json.Marshal(data)
 
 		sendRequest(jsonData, requestType)
