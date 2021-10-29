@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	requestsTypes := []string{ "dates-compare", "charts-count", "charts-compare", "entities-compare" }
+	requestsTypes := []string{"dates-compare", "charts-count", "charts-compare", "entities-compare"}
 
 	for _, requestType := range requestsTypes {
 		fmt.Print("\n ====================================================================\n")
@@ -23,14 +23,13 @@ func main() {
 			{"JOB_TALK", "line"}, {"JOB_CALLS", "line"}, {"JOB_UPDATE", "line"},
 		}
 
-
 		option := getTypeOption(requestType)
 
 		data := &RequestOptions{
-			RequestTypeOptions: 	    option,
+			RequestTypeOptions: option,
 			Filters: Filter{
-				Cluster: 	    "clusterHour",
-				DayStart: 	    "2017-01-22",
+				Cluster:            "clusterHour",
+				DayStart:           "2017-01-22",
 				DayEnd:             "2017-01-24",
 				TimePeriods:        []TimePeriod{},
 				Lines:              []string{},
@@ -40,27 +39,24 @@ func main() {
 			},
 			Charts: charts,
 		}
-
 		jsonData, _ := json.Marshal(data)
 
-		sendRequest(jsonData, requestType )
+		sendRequest(jsonData, requestType)
 
 	}
 }
 
-
-func sendRequest(data []byte, requestType string){
+func sendRequest(data []byte, requestType string) {
 
 	request := gorequest.New()
 	url := "http://localhost:8080/chart"
 
-
 	fmt.Println("Request:>", requestType)
 
 	resp, body, errs := request.Post(url).
-	Set("X-Request-type", requestType).
-	Send(string(data)).
-	End()
+		Set("X-Request-type", requestType).
+		Send(string(data)).
+		End()
 	if errs != nil {
 		fmt.Println(errs)
 		os.Exit(1)
@@ -72,28 +68,26 @@ func sendRequest(data []byte, requestType string){
 	fmt.Println("response Body:", body)
 }
 
-
-
-func getUsers(requestType string) []string{
+func getUsers(requestType string) []string {
 	switch requestType {
 	case "entities-compare":
 		return []string{"2109", "1546", "5580"}
 
-	default: return []string{}
+	default:
+		return []string{}
 
 	}
 }
 
-func getTypeOption(requestType string) interface{}{
+func getTypeOption(requestType string) interface{} {
 
 	switch requestType {
 	case "dates-compare":
 		options := DatesCompareRequestOptions{}
-		options.Periods= [][2]string{
+		options.Periods = [][2]string{
 			{"2017-01-22", "2017-01-23"},
 			{"2017-01-23", "2017-01-24"},
 			{"2017-01-07", "2017-01-09"},
-
 		}
 		return options
 	case "entities-compare":
@@ -106,7 +100,6 @@ func getTypeOption(requestType string) interface{}{
 
 	}
 }
-
 
 type RequestOptions struct {
 	RequestTypeOptions interface{}
@@ -130,7 +123,7 @@ type Chart struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
 }
-type DatesCompareRequestOptions struct{
+type DatesCompareRequestOptions struct {
 	Periods [][2]string
 }
 
